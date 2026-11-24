@@ -121,7 +121,7 @@ npm run db:reset
 ### 재현
 
 ```sh
-git clone [저장소 URL] && cd [저장소 폴더]   # 저장소 루트 = 이 starter 폴더
+git clone https://github.com/ledohy/Approval-Service.git && cd Approval-Service
 node --version              # v24.x
 npm ci
 npm test
