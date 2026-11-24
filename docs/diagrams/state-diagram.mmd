@@ -1,0 +1,11 @@
+stateDiagram-v2
+    direction LR
+    state "PENDING<br/>대기" as PENDING
+    state "APPROVED<br/>승인 · 정원에 포함" as APPROVED
+    state "CANCELLED<br/>종료 상태" as CANCELLED
+    state "REVOKED<br/>종료 상태" as REVOKED
+    [*] --> PENDING: 신청 · 학생 본인 · APPLY
+    PENDING --> CANCELLED: 대기 취소 · 신청한 학생 · CANCEL
+    PENDING --> APPROVED: 직접 승인 · 담당 운영자 · APPROVE
+    PENDING --> APPROVED: 자동 승급 · AUTO_APPROVE
+    APPROVED --> REVOKED: 승인 취소 · 담당 운영자 · REVOKE

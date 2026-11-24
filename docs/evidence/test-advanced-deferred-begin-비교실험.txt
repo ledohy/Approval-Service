@@ -1,0 +1,40 @@
+# 비교 실험: src/application-service.js의 BEGIN IMMEDIATE를 BEGIN(DEFERRED)으로 바꾼 임시 복사본에서 npm run test:advanced 실행 (제출 코드는 BEGIN IMMEDIATE)
+
+
+> business-rules-assignment-2@2.0.0 test:advanced
+> node --test tests/concurrency.test.js
+
+✖ 선택 심화: 서버 두 개가 마지막 한 자리를 동시에 승인 (262.26025ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 285.102666
+
+✖ failing tests:
+
+test at tests/concurrency.test.js:6:1
+✖ 선택 심화: 서버 두 개가 마지막 한 자리를 동시에 승인 (262.26025ms)
+  AssertionError [ERR_ASSERTION]: [{"status":200,"data":{"id":7,"eventId":2,"userId":1,"status":"APPROVED","createdAt":"2026-11-24T05:28:37.457Z","updatedAt":"2026-11-24T05:28:37.463Z","applicantName":"민지","eventTitle":"서비스 설계 스터디"}},{"status":500,"data":{"code":"INTERNAL_ERROR","message":"서버에서 처리하지 못했습니다."}}]
+  + actual - expected
+  
+    [
+      200,
+  +   500
+  -   409
+    ]
+  
+      at TestContext.<anonymous> (file://<starter-복사본>/tests/concurrency.test.js:17:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 200, 500 ],
+    expected: [ 200, 409 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,43 @@
+sequenceDiagram
+    autonumber
+    actor M as 운영자 화면 (public/app.js)
+    participant A as app.js 라우터 + auth.middleware
+    participant S as application-service.js revoke()
+    participant R as repository.js
+    participant D as SQLite (data/app.sqlite)
+
+    M->>A: POST /api/applications/:id/revoke {reason}
+    A->>A: JWT 검증 → 401 / ID·본문 형식, reason trim 5~200자 → 400
+    A->>S: service.revoke(req.user, id, reason)
+    rect rgba(255, 230, 150, 0.35)
+    note over S,D: 트랜잭션 범위 — transaction(fn)
+    S->>D: BEGIN IMMEDIATE (쓰기 잠금 획득)
+    S->>R: application(id)
+    R->>D: SELECT ... WHERE a.id=?
+    alt 없음 → 404 / 담당자 아님 → 403 / APPROVED 아님 → 409
+        S->>D: ROLLBACK
+        S-->>A: AppError 4xx (상태·이력 불변)
+    else 검사 통과
+        S->>R: setStatus(id, 'REVOKED')
+        R->>D: UPDATE applications SET status='REVOKED'
+        S->>R: addHistory(REVOKE, APPROVED→REVOKED, reason)
+        R->>D: INSERT application_history → revokeHistoryId
+        S->>R: nextWaiting(eventId)
+        R->>D: SELECT id ... status='PENDING' ORDER BY created_at ASC, id ASC LIMIT 1
+        opt 대기자 있음
+            S->>R: setStatus(nextId, 'APPROVED')
+            R->>D: UPDATE applications SET status='APPROVED'
+            S->>R: addHistory(AUTO_APPROVE, causeHistoryId=revokeHistoryId)
+            R->>D: INSERT application_history
+        end
+        alt 모든 SQL 성공
+            S->>D: COMMIT
+            S-->>A: {revoked, promoted 또는 null}
+            A-->>M: 200 JSON
+        else 어느 UPDATE/INSERT든 실패 (예: 이력 트리거 오류)
+            S->>D: ROLLBACK (REVOKED·REVOKE 이력·APPROVED 모두 취소)
+            S-->>A: 예외 재던짐
+            A-->>M: 500 INTERNAL_ERROR
+        end
+    end
+    end
